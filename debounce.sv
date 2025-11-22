@@ -4,7 +4,6 @@ module debounce #(
     parameter ACTIVE_LOW  = 1
 ) (
     input  logic clk,
-    input  logic rst,
     input  logic btn_i,
     output logic pressed
 );
@@ -14,13 +13,8 @@ module debounce #(
 
   logic s0, s1;
   always_ff @(posedge clk) begin
-    if (rst) begin
-      s0 <= 1'b0;
-      s1 <= 1'b0;
-    end else begin
-      s0 <= btn_norm;
-      s1 <= s0;
-    end
+    s0 <= btn_norm;
+    s1 <= s0;
   end
 
   /* actually CLK_HZ * (DEBOUNCE_MS / 1000)
@@ -35,29 +29,20 @@ module debounce #(
 
   /* verilator lint_off WIDTHEXPAND */
   always_ff @(posedge clk) begin
-    if (rst) begin
-      stable_state <= 1'b0;
-      cnt          <= 0;
+    if (s1 == stable_state) begin
+      cnt <= 0;
     end else begin
-      if (s1 == stable_state) begin
-        cnt <= 0;
+      if (cnt == STABLE_CYCLES - 1) begin
+        stable_state <= s1;
+        cnt          <= 0;
       end else begin
-        if (cnt == STABLE_CYCLES - 1) begin
-          stable_state <= s1;
-          cnt          <= 0;
-        end else begin
-          cnt <= cnt + 1'b1;
-        end
+        cnt <= cnt + 1'b1;
       end
     end
   end
 
   logic stable_state_d;
-  always_ff @(posedge clk) begin
-    if (rst) stable_state_d <= 1'b0;
-    else stable_state_d <= stable_state;
-  end
+  always_ff @(posedge clk) stable_state_d <= stable_state;
 
   assign pressed = (stable_state & ~stable_state_d);
 endmodule
-
