@@ -11,10 +11,6 @@ NEXTPNR ?= nextpnr-ecp5
 ECPPACK ?= ecppack
 PROG    ?= fujprog
 
-JSON    := $(TOP).json
-CFG     := $(BOARD)_out.config
-BIT     := $(BOARD).bit
-
 all: $(BIT)
 
 $(JSON): $(SRCS)
@@ -34,6 +30,6 @@ lint:
 	verilator --lint-only -Wall $(SRCS)
 
 clean:
-	rm -f $(JSON) $(CFG) $(BIT) $(BOARD).svf
+	@rm -f *.json *.config *.bit *.dot *.png *.svf
 
 .PHONY: all prog lint clean
